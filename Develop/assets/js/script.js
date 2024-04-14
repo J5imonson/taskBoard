@@ -1,29 +1,22 @@
 // Retrieve tasks and nextId from localStorage
-const taskInput = $('.task');
-const dueDateInput = $('.dueDate');
-const descriptionInput = $('.description');
-const taskFormEl = $('formModal');
+const taskInput = $('#task');
+const dueDateInput = $('#dueDate');
+const descriptionInput = $('#description');
+const taskFormEl = $('#formModal');
 
 
 // Todo: create a function to generate a unique task id
-function generateTaskId() {
-  const id = (() => {
-    let i = 0;
-    return () => {
-      return i++;
-    }
-  })();
-}
+
 
 // Todo: create a function to create a task card
 function createTaskCard(task) {
   const taskCard = $('<div>')
     .addClass('card draggable m-3')
     .attr('data-task-id', task.id);
-  const cardHeader = $('<div>').addClass('cardHeader h4').text(task);
-  const cardBody = $('<div>').addClass('cardBody');
-  const cardDate = $('<p>').addClass('cardDate').text(dueDate);
-  const cardDesc = $('<p>').addClass('cardDesc').text(description);
+  const cardHeader = $('<div>').addClass('card-header h4').text(task.task);
+  const cardBody = $('<div>').addClass('card-body');
+  const cardDate = $('<p>').addClass('card-text').text(task.dueDate);
+  const cardDesc = $('<p>').addClass('card-text').text(task.description);
   const cardDeleteBtn = $('<button>')
     .addClass('btn btn-danger delete')
     .text('Delete')
@@ -64,13 +57,19 @@ function saveTaskToStorage(taskList) {
 
 function renderTaskList() {
   let taskList = readTaskFromStorage("tasks");
+  const todoList = $('#todo-cards');
+  todoList.empty();
+  const inProgressList = $('#in-progress-cards');
+  inProgressList.empty();
+  const doneList = $('#done-cards');
+  doneList.empty();
   for (let task of taskList) {
     if (task.status === 'to-do') {
-      todoList.append(createtasksCard(task));
+      todoList.append(createTaskCard(task));
     } else if (task.status === 'in-progress') {
-      inProgressList.append(createtasksCard(task));
+      inProgressList.append(createTaskCard(task));
     } else if (task.status === 'done') {
-      doneList.append(createtasksCard(task));
+      doneList.append(createTaskCard(task));
     }
   }
 
@@ -90,8 +89,7 @@ function renderTaskList() {
 
 
 // Todo: create a function to handle adding a new task
-function handleAddTask(event) {
-  event.preventDefault();
+function handleAddTask() {
 const taskName = taskInput.val().trim();
 const dueDate = dueDateInput.val();
 const description = descriptionInput.val();
@@ -100,6 +98,7 @@ const newTask = {
   dueDate: dueDate,
   description: description,
   status: "to-do",
+  id: crypto.randomUUID()
 };
 
 const tasks = readTaskFromStorage();
@@ -111,12 +110,12 @@ renderTaskList();
 // Todo: create a function to handle deleting a task
 function handleDeleteTask(event) {
   event.preventDefault();
-  const taskId = $(this).attr('data-taskid');
+  const taskId = $(this).attr('data-task-id');
   const tasks = readTaskFromStorage();
 
-  tasks.forEach((task) => {
+  tasks.forEach((task, i) => {
     if (task.id === taskId) {
-      tasks.splice(tasks.indexOf(task), 1);
+      tasks.splice(i, 1);
     }
   });
   saveTaskToStorage(tasks);
@@ -130,7 +129,7 @@ function handleDrop(event, ui) {
   const newStatus = event.target.id;
 
   for(let task of tasks) {
-    if (task.id === taskId) {
+    if (task.id == taskId) {
       task.status = newStatus;
     }
   }
@@ -140,12 +139,10 @@ function handleDrop(event, ui) {
 
 // Todo: when the page loads, render the task list, add event listeners, make lanes droppable, and make the due date field a date picker
 
-taskFormEl.on('click', '.btn-save', handleAddTask);
-
 $(document).ready(function () {
   renderTaskList();
 
-  $('.dueDate').datepicker({
+  $('#dueDate').datepicker({
     changeMonth: true,
     changeYear: true,
   });
@@ -155,4 +152,10 @@ $(document).ready(function () {
     drop: handleDrop,
   });
  
+});
+
+taskFormEl.on('click', '.btn-save', function(e){
+  e.preventDefault();
+  handleAddTask();
+  taskFormEl.modal('hide');
 });
